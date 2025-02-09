@@ -1,0 +1,4 @@
+await Bun.build({
+  entrypoints: ['./src/app/layout.js'],
+  outdir: '.output/',
+});

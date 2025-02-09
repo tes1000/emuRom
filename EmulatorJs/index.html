@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EmulatorJS</title>
+        <link rel="icon" href="/emulatorjs/docs/favicon.ico" sizes="16x16 32x32 48x48 64x64" type="image/vnd.microsoft.icon">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/emulatorjs/data/emulator.css">
+        <style>
+            /* Simplified CSS - removed redundant declarations */
+            body, html {
+                height: 100%;
+                margin: 0;
+                background: black;
+                color: white;
+                font-family: monospace;
+            }
+
+            #top, #box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+
+            #box {
+                background: #333;
+                border: 2px solid #555;
+                border-radius: 0.4em;
+                margin: 5px;
+                padding: 2em;
+                transition: all 0.2s;
+            }
+
+            #box:hover {
+                border-color: #38f;
+                color: #ddd;
+            }
+
+            .logo {
+                width: 130px;
+                height: 130px;
+                filter: drop-shadow(0 0 10px white);
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="top">
+            <h1>EmulatorJS Demo</h1>
+            <img src="/emulatorjs/docs/Logo-light.png" alt="Logo" class="logo">
+        </div>
+        <div id="box" style="display: none;">
+            <input type="file" id="input">
+            Drag ROM file or click here
+        </div>
+
+        <script>
+            // Simplified configuration
+            const urlParams = new URLSearchParams(window.location.search);
+            const romUrl = urlParams.get('rom');
+
+            // Core mapping (simplified for common systems)
+            const coreExtensions = {
+                nes: ['nes', 'fds'],
+                snes: ['smc', 'sfc'],
+                gba: ['gba'],
+                gb: ['gb', 'gbc'],
+                psx: ['bin', 'cue']
+            };
+
+            async function initEmulator(romUrl, core = 'auto') {
+                // Clean up UI
+                document.getElementById('top')?.remove();
+                document.getElementById('box')?.remove();
+
+                // Create container
+                const container = document.createElement('div');
+                container.id = 'game-container';
+                container.style.width = '100vw';
+                container.style.height = '100vh';
+                document.body.appendChild(container);
+
+                // Configure EmulatorJS
+                window.EJS_player = '#game-container';
+                window.EJS_gameUrl = romUrl;
+                window.EJS_pathtodata = '/emulatorjs/data/';
+                window.EJS_core = core;
+
+                // Load emulator script
+                const script = document.createElement('script');
+                script.src = '/emulatorjs/data/loader.js';
+                document.body.appendChild(script);
+            }
+
+            // Auto-load if ROM parameter exists
+            if (romUrl) {
+                const ext = romUrl.split('.').pop().toLowerCase();
+                const core = Object.entries(coreExtensions).find(([_, exts]) => 
+                    exts.includes(ext)
+                )?.[0] || 'auto';
+                
+                initEmulator(romUrl, core);
+            } else {
+                // Show upload box
+                const box = document.getElementById('box');
+                box.style.display = 'flex';
+
+                // File upload handler
+                document.getElementById('input').onchange = async function() {
+                    const file = this.files[0];
+                    initEmulator(URL.createObjectURL(file));
+                };
+            }
+        </script>
+    </body>
+</html>

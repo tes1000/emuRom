@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+EmuRom is a Dockerized lightweight wrapper for EmulatorJS.
 
-## Getting Started
 
-First, run the development server:
+Environment Setup
+Create a .env file in the project root with the following variables:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+NEXT_PUBLIC_API_BASE_URL=127.0.0.1
+NEXT_PUBLIC_SSL=0   # Use 1 to enable SSL
+NEXT_PUBLIC_PORT=3000
+UPLOAD_PASSWORD_HASH=
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Note: To generate a bcrypt hash for your upload password, use this Python script:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+import bcrypt
+import getpass
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+def main():
+    password = getpass.getpass("Enter password to hash: ")
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+    print("\nYour hashed password is:")
+    print(hashed_password.decode('utf-8'))
 
-## Learn More
+if __name__ == "__main__":
+    main()
 
-To learn more about Next.js, take a look at the following resources:
+Data Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The game data should be organized and mounted to /app/data in the container. The expected structure is:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+data/
+ ├── platform1/
+ │    ├── game1/
+ │    │    ├── rom/      # Contains the ROM file
+ │    │    ├── data/     # Additional game data (optional)
+ │    │    └── images/   # Game images (optional)
+ │    └── ...
+ └── uploads/             # Temporary upload folder
 
-## Deploy on Vercel
+Usage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    Start the Containers:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    Make sure your host's data directory is mounted to /app/data in the container. Then run:
+
+    docker-compose up -d
+
+    Access the Application:
+
+    Open your browser at http://127.0.0.1:{port}.
+
+Enjoy managing and playing your ROM-based games with EmuRom!
