@@ -2,10 +2,12 @@ version: '3.8'
 
 services:
   emurom:
-    image: emurom
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: emurom_container
     ports:
-      - "3000:3000"
+      - "30044:30044"
     volumes:
       - "C:/Users/invalid/Documents/GitHub/EmuRom/data:/app/data"
     restart: unless-stopped

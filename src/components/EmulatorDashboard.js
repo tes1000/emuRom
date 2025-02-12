@@ -4,44 +4,25 @@ import React, { useState, useEffect } from "react";
 // Make sure this path is valid in your project.
 import notFound from "../app/404.png";
 import { useLoading } from "@/contexts/LoadingContext";
+import ShowConfigComponent from "./ShowConfigComponent";
 
-const EmulatorDashboard = ({  selectedRom, setSelectedRom}) => {
-  const { isLoading, setIsLoading, isPlaying, setIsPlaying, animating, setAnimating } = useLoading(); // Get from context
+const EmulatorDashboard = () => {
+  const { isLoading, isPlaying, setIsPlaying, animating, setAnimating, selectedRom, setSelectedRom, setShowConfig, romUrl, setRomUrl } = useLoading(); // Get from context
   const [games, setGames] = useState({});
   const [viewMode, setViewMode] = useState("card");
   const [romLimit, setRomLimit] = useState(10000);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const API_SSL_URL = Number(process.env.NEXT_PUBLIC_SSL) ? "https://" : "http://";
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "localhost";
-  const API_PORT = process.env.NEXT_PUBLIC_PORT ?? 3000
-
+  const API_PORT = process.env.NEXT_PUBLIC_PORT ?? 30044
+  
   // Fetch the games data on mount
   useEffect(() => {
-    fetch(`${API_SSL_URL + API_BASE_URL}:${API_PORT}/api/games`)
+    fetch(`/api/games`)
       .then((res) => res.json())
       .then((data) => setGames(data))
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      setAnimating(true);
-    }
-  }, [isLoading]);
-
-  useEffect(() => {
-    console.log(isPlaying)
-    if (isPlaying || isLoading) {
-      setAnimating(false);
-    } else {
-      setAnimating(true);
-      setSelectedRom(null);
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    selectedRom && setIsPlaying(true);
-  }, [selectedRom]);
 
   function getGridClasses() {
     const count = Object.keys(games).length;
@@ -57,7 +38,6 @@ const EmulatorDashboard = ({  selectedRom, setSelectedRom}) => {
     return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4";
   }
 
- 
   // Render either all platforms or a single selected one
   const renderPlatforms = () => {
     if (!games || Object.keys(games).length === 0) {
@@ -133,8 +113,9 @@ const EmulatorDashboard = ({  selectedRom, setSelectedRom}) => {
                 ${animating && "animate-[glowWithBorder_4s_infinite_alternate]"}
                 shadow-none
             `}
-              onClick={() =>
-                setSelectedRom(`/play?rom=${encodeURIComponent(game.rom)}`)
+              onClick={() => {
+                  setSelectedRom(game);
+                }
               }
             >
               <img
@@ -218,6 +199,7 @@ const EmulatorDashboard = ({  selectedRom, setSelectedRom}) => {
         </div>
  */}
       {/* Platforms container */}
+      <ShowConfigComponent setShowConfig={setShowConfig}/>
         <div
           key="pc1"
           className={`flex flex-col ${getGridClasses(games)} 

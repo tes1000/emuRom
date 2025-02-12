@@ -6,13 +6,16 @@ import multer from "multer";
 import extract from "extract-zip";
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
+
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 30044;
 const SSL = Number(process.env.NEXT_PUBLIC_SSL) ? "https://" : "http://";
 const DOMAIN = process.env.NEXT_PUBLIC_API_BASE_URL || "localhost"
-const DATA_DIR = path.join(import.meta.dir, "data");
+const DATA_DIR = process.env.DATA_PATH
+  ? path.join(__dirname, process.env.DATA_PATH)
+  : path.join(__dirname, "data");
 const FRONTEND_BUILD = path.join(import.meta.dir, "out");
 const EMULATOR_JS = path.join(import.meta.dir, "EmulatorJs")
 
@@ -20,6 +23,9 @@ app.use(cors({ origin: '*' }));
 app.use(express.static("public"));
 app.use("/data", express.static(DATA_DIR));
 app.use(express.static(FRONTEND_BUILD));
+app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Function to find the first image in a directory
 const findImage = (dir) => {
@@ -54,6 +60,26 @@ function findRom(gamePath) {
   return null;
 }
 
+function findConfig(gamePath) {
+  const controllerDataPath = path.join(gamePath, "config/controls");
+  const saveDataPath = path.join(gamePath, "config/save_data");
+
+  fs.mkdirSync(controllerDataPath, { recursive: true });
+  fs.mkdirSync(saveDataPath, { recursive: true });
+
+  // Read and map the file names in the controls directory to their full paths.
+  const controlsFiles = fs.readdirSync(controllerDataPath)
+    .filter(file => fs.statSync(path.join(controllerDataPath, file)).isFile())
+    .map(file => path.join(controllerDataPath, file).replace(/^\/app/, ''));
+  
+  // Read and map the file names in the save_data directory to their full paths.
+  const saveFiles = fs.readdirSync(saveDataPath)
+    .filter(file => fs.statSync(path.join(saveDataPath, file)).isFile())
+    .map(file => path.join(saveDataPath, file).replace(/^\/app/, ''));
+  
+  return { controls: controlsFiles, save: saveFiles };
+}
+
 // Improved directory scanner
 const getGamesData = (dir) => {
   try {
@@ -66,19 +92,20 @@ const getGamesData = (dir) => {
     fs.readdirSync(dir).forEach((platform) => {
       if (platform.trim().toLowerCase() === "uploads") return;
 
-      const platformPath = path.join(dir, platform);
+      const platformPath = path.join(dir, platform); //i.e path to Collection
       if (!fs.statSync(platformPath).isDirectory()) return;
       const games = fs.readdirSync(platformPath)
         .filter(game => fs.statSync(path.join(platformPath, game)).isDirectory())
-        .map(game => {
-          const gamePath = path.join(platformPath, game);
-          return {
+        .map(game => { //For each game within collection
+          const gamePath = path.join(platformPath, game); //path to game
+          return {//Final response data
             name: game,
             image: findImage(gamePath),
             data: fs.existsSync(path.join(gamePath, "data")) 
               ? `/data/${platform}/${game}/data` 
               : null,
-            rom: findRom(gamePath)
+            rom: findRom(gamePath),
+            config: findConfig(gamePath)
           };
         });
 
@@ -95,7 +122,6 @@ const getGamesData = (dir) => {
     throw err;
   }
 };
-
 //handle upload
 const upload = multer({ dest: "data/uploads" });
 //upload api
@@ -189,6 +215,136 @@ app.get("/api/games", (req, res) => {
     });
   }
 });
+
+app.post("/api/save", upload.single("state"), async (req, res) => {
+  try {
+    let { rom_url, save_state } = req.body;
+    if (!rom_url || !save_state || !req.file) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Decode URL components
+    rom_url = decodeURIComponent(rom_url);
+    rom_url = path.join("/app", rom_url)
+    save_state = decodeURIComponent(save_state);
+
+    // Paths for security checks
+    const tromPath = path.resolve(DATA_DIR, rom_url);
+    if (!tromPath.startsWith(DATA_DIR)) {
+      return res.status(403).json({ error: "Forbidden: Invalid ROM path" });
+    }
+
+    const tempFilePath = req.file.path; // The uploaded file's temporary path
+
+    // Immediately respond with 200 OK
+    res.status(200).json({ success: true, message: "File uploaded. Processing in background." });
+
+    // === Async Processing ===
+    (async () => {
+      try {
+        const tsavePath = path.resolve(DATA_DIR, save_state);
+        const savePath = path.join("/app", tsavePath);
+
+        let finalSavePath = savePath;
+
+        // Check if the file exists, otherwise determine an alternative path
+        try {
+          await fs.access(savePath);
+        } catch (accessErr) {
+          const romDir = path.dirname(tromPath);
+          const baseDir = path.join(romDir, "../config/save_data");
+          const saveFileName = path.basename(save_state).replace(/\./g, "") + ".state";
+          finalSavePath = path.resolve(baseDir, saveFileName);
+        }
+
+        // Ensure final path is secure
+        if (!finalSavePath.startsWith(DATA_DIR)) {
+          console.error("Forbidden: Invalid save path:", finalSavePath);
+          return;
+        }
+
+        // Move the file to the final destination
+        await fs.rename(tempFilePath, finalSavePath);
+
+        console.log("File moved to:", finalSavePath);
+      } catch (moveError) {
+        console.error("Error processing file:", moveError);
+      }
+    })();
+
+  } catch (error) {
+    console.error("Save error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/api/rename", (req, res) => {
+  const { selectedRom, newName } = req.body;
+
+  if (!selectedRom || !newName) {
+    return res.status(400).json({ error: "Missing selectedRom or newName" });
+  }
+
+  // Resolve absolute paths
+  const toldPath = path.resolve(DATA_DIR, decodeURIComponent(selectedRom));
+  const oldPath = path.join("/app"+toldPath)
+  const tnewName = decodeURIComponent(newName); // assuming newName might be URL-encoded
+
+  // Extract the directory from oldPath and the last segment from newName:
+  const directory = path.dirname(oldPath);
+  const newFileName = path.basename(tnewName+".state");
+  
+  // Combine them to form newPath:
+  const newPath = path.join(directory, newFileName);
+
+  // Prevent path traversal
+  if (!newPath.startsWith(DATA_DIR) || !oldPath.startsWith(DATA_DIR)) {
+    return res.status(403).json({ error: "Forbidden: Invalid path:: "+newPath+oldPath});
+  }
+
+  if (!fs.existsSync(oldPath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  fs.rename(oldPath, newPath, (err) => {
+    if (err) {
+      console.error("Rename error:", err);
+      return res.status(500).json({ error: "Rename failed", details: err.message });
+    }
+    res.json({ success: true, message: `Renamed to ${newName}` });
+  });
+});
+
+
+app.post("/api/delete", (req, res) => {
+  const { rom } = req.body;
+
+  if (!rom) {
+    return res.status(400).json({ error: "Missing file path" });
+  }
+
+  // Resolve absolute path
+  const tfilePath = path.resolve(DATA_DIR, decodeURIComponent(rom));
+  const filePath = path.join("/app", tfilePath)
+  
+  // Prevent path traversal
+  if (!filePath.startsWith(DATA_DIR)) {
+    return res.status(403).json({ error: "Forbidden: Invalid path "+ filePath});
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Delete error:", err);
+      return res.status(500).json({ error: "Delete failed", details: err.message });
+    }
+    res.json({ success: true, message: "File deleted successfully" });
+  });
+});
+
 
 
 // Serve EmulatorJS assets under /emulatorjs path

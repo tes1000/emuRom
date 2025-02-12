@@ -117,7 +117,7 @@ body {
 
 /* ========== Utility Classes for Animations ========== */
 .animate-glow { animation: glow 1.5s infinite alternate; }
-.animate-softGlow { animation: softGlow 2s infinite alternate; }
+.animate-softGlow { animation: softGlow 1.5s infinite alternate; }
 .animate-glowWithBorder { animation: glowWithBorder 1.5s infinite alternate; }
 .animate-glowBorder { animation: glowBorder 1.5s infinite alternate; }
 .animate-glowBorderTop { animation: glowBorderTop 1.5s infinite alternate; }

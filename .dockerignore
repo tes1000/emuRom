@@ -2,3 +2,4 @@ node_modules/
 bun.lockb
 .git
 .next
+.env.local

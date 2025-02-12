@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import StateMachineComponent from "@/components/StateMachine";
 import NavBar from "@/components/NavBar";
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
                   <a href="https://github.com/tes1000" className="hover:text-blue-400 text-neonBlue">#GitHub</a>
                 </div>
               </footer>
+        <StateMachineComponent/>
         </LoadingProvider>
       </body>
     </html>

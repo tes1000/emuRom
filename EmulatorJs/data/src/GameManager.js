@@ -213,6 +213,7 @@ class EJS_GameManager {
         })
     }
     quickSave(slot) {
+        console.log("DEBUG: 1")
         if (!slot) slot = 1;
         (async () => {
             let name = slot + '-quick.state';
@@ -390,6 +391,7 @@ class EJS_GameManager {
         return this.functions.getSaveFilePath();
     }
     saveSaveFiles() {
+        console.log("DEBUG: 3")
         this.functions.saveSaveFiles();
         //this.FS.syncfs(false, () => {});
     }
@@ -397,11 +399,13 @@ class EJS_GameManager {
         return !!this.functions.supportsStates();
     }
     getSaveFile() {
+        console.log("DEBUG: 2")
         this.saveSaveFiles();
         const exists = this.FS.analyzePath(this.getSaveFilePath()).exists;
         return (exists ? this.FS.readFile(this.getSaveFilePath()) : null);
     }
     loadSaveFiles() {
+        console.log("DEBUG: 4")
         this.clearEJSResetTimer();
         this.functions.loadSaveFiles();
     }

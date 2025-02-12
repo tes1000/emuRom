@@ -1,12 +1,13 @@
 import { useLoading } from '@/contexts/LoadingContext';
 
-const PlayFrame = ({ selectedRom }) => {
-  const { setIsPlaying } = useLoading();
+const PlayFrame = () => {
+  const { setRomUrl, romUrl, setSelectedRom } = useLoading();
 
   const closeFrame = () => {
-    setIsPlaying(false)
+    setSelectedRom(null)
+    setRomUrl(false);
   }
-console.log("SELECTED: ", selectedRom)
+
   return (
     <div id="Emu-Frame" className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-80 flex items-center justify-center">
       <button
@@ -17,7 +18,7 @@ console.log("SELECTED: ", selectedRom)
       </button>
 
       <iframe
-        src={selectedRom}
+        src={romUrl}
         className="fixed w-[100%] h-[80%]"
         allowFullScreen
         title="Game Display"

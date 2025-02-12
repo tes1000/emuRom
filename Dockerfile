@@ -1,6 +1,9 @@
 # Use Node.js 20 for the build stage to handle EmulatorJS minification
 FROM node:20 AS builder
+ENV NODE_ENV=production
 
+RUN apt update
+RUN apt install -y binutils-mips-linux-gnu build-essential pkgconf python3 git p7zip-full
 WORKDIR /app
 
 # Install Bun and Node.js dependencies
@@ -19,6 +22,7 @@ RUN bun install
 
 # Build Next.js frontend
 WORKDIR /app
+#RUN mv .env .env.local
 RUN bun run build
 
 # Production image with Bun
@@ -29,5 +33,5 @@ WORKDIR /app
 # Copy built project from builder
 COPY --from=builder /app .
 
-EXPOSE 3000
+EXPOSE 30044
 CMD ["bun", "run", "server.js"]

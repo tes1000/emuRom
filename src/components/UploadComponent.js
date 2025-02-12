@@ -19,17 +19,12 @@ const UploadComponent = () => {
   const [uploadStatus, setUploadStatus] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
-  // Change this to match your API URL environment variable.
-  const API_SSL_URL = Number(process.env.NEXT_PUBLIC_SSL)
-    ? "https://"
-    : "http://";
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "localhost";
-  const API_PORT = process.env.NEXT_PUBLIC_PORT ?? 3000;
 
   // Fetch the available platforms (directories in your data folder)
   // from your server. The endpoint should return a JSON array.
   useEffect(() => {
-    fetch(`${API_SSL_URL + API_BASE_URL}:${API_PORT}/api/games`)
+    fetch(`/api/games`)
       .then((res) => res.json())
       .then((data) => {
         setPlatforms(data);
@@ -76,7 +71,7 @@ const UploadComponent = () => {
     setUploadStatus("Uploading...");
 
     try {
-      const response = await fetch(`http://${API_BASE_URL}/upload`, {
+      const response = await fetch(`/upload`, {
         method: "POST",
         body: formData,
       });
@@ -140,19 +135,18 @@ const UploadComponent = () => {
                 ${selectedPlatform === platformName ? "border-white" : "border-transparent"}
                 ${animating && selectedPlatform === platformName && "animate-[glowBorder_4s_infinite_alternate]"}
               `}
-              onClick={() => {
-  if (selectedPlatform === platformName) {
-    setSelectedPlatform(null);
-  } else {
-    setAnimating(false);
-    setSelectedPlatform(platformName);
-    // Optionally, delay turning animation back on slightly:
-    setTimeout(() => {
-      setAnimating(true);
-    }, 0);
-  }
-}}
-
+                onClick={() => {
+                  if (selectedPlatform === platformName) {
+                    setSelectedPlatform(null);
+                  } else {
+                    setAnimating(false);
+                    setSelectedPlatform(platformName);
+                    // Optionally, delay turning animation back on slightly:
+                    setTimeout(() => {
+                      setAnimating(true);
+                    }, 0);
+                  }
+                }}
               >
                 <img
                   src={platformImage}

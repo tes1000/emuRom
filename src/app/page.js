@@ -1,5 +1,4 @@
 'use client'
-import { useState, useRef, useEffect } from 'react';
 import { useLoading } from '@/contexts/LoadingContext';
 import EmulatorDashboard from "@/components/EmulatorDashboard";
 import SplashLoader from "@/components/SplashLoader";
@@ -7,24 +6,15 @@ import PlayFrame from '@/components/PlayFrame';
 import logo from './Emu-head.webp';
 
 export default function Home() {
-  const [selectedRom, setSelectedRom] = useState(null);
-  const { isLoading, isPlaying, setIsPlaying } = useLoading();
-  const playFrameRef = useRef(null);
-
-  // Effect to reset the ref when PlayFrame unmounts
-  useEffect(() => {
-    if (!isPlaying) {
-      playFrameRef.current = null;
-    }
-  }, [isPlaying]);
+  const { isLoading, isPlaying, romUrl } = useLoading();
 
   return (
     <div className="min-h-screen">
-      {/* Render PlayFrame only if isPlaying is true and the ref doesn't already exist */}
-      {isPlaying && !playFrameRef.current && (
-        <PlayFrame ref={playFrameRef} selectedRom={selectedRom} />
-      )}
 
+      {/* Render PlayFrame only if isPlaying is true and the ref doesn't already exist */}
+      {isPlaying && romUrl && (
+        <PlayFrame />
+      )}
       {!isPlaying && (
         <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center gap-3 sm:p-20 font-[family-name:var(--font-geist-sans)]">
           {/* TitlePanel */}
@@ -40,7 +30,7 @@ export default function Home() {
           </div>
 
           {/* Emulator Dashboard */}
-          <EmulatorDashboard selectedRom={selectedRom} setSelectedRom={setSelectedRom} />
+          <EmulatorDashboard />
 
           {/* Loading Screen */}
           {isLoading && <SplashLoader />}

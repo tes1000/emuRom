@@ -59,7 +59,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const romUrl = decodeURIComponent(urlParams.get('rom') || '');
             const saveState = decodeURIComponent(urlParams.get('save_state') || '');
-            
+
             // Core-to-extension mapping
             const coreExtensions = {
                 nes: ['nes', 'fds'],
