@@ -3,3 +3,4 @@ bun.lockb
 .git
 .next
 .env.local
+.idea

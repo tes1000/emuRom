@@ -16,17 +16,18 @@ export default function Home() {
         <PlayFrame />
       )}
       {!isPlaying && (
-        <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center gap-3 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+        <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center gap-3 sm:p-2 font-[family-name:var(--font-geist-sans)]">
           {/* TitlePanel */}
-          <div className={`relative flex w-[80%] h-[200px] items-center justify-between 
+          <div className={`flex-col w-full overflow-hidden relative md:flex md:w-[80%] h-[200px] items-center justify-between 
             bg-gradient-to-r from-cyan-500 via-purple-800 to-blue-900 
-            text-white mt-1 p-6 rounded-2xl 
+            text-white md:mt-1 md:p-6 rounded-2xl
             border border-white/30 
             backdrop-blur-lg backdrop-saturate-150 
-            before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.2),transparent)] before:rounded-2xl
             ${!isLoading && 'animate-[glow_4s_infinite_alternate]'}`}>
-            <img src={logo.src} alt="EmuRom Logo" className="h-[200px] w-[200px] -ml-6 -my-6 mr-4 drop-shadow-lg rounded-l-xl" />
-            <h1 className="flex-1 text-center mr-[100px] text-4xl font-extrabold tracking-wide drop-shadow-lg">EmuRom</h1>
+            <div className='h-[80%] w-full md:h-full md:-mt-20 overflow-hidden md:overflow-visible'>
+              <img src={logo.src} alt="EmuRom Logo" className="w-full h-auto md:h-[300px] md:w-auto md:-ml-6 -my-16 md:my-0 drop-shadow-lg rounded-l-xl" />
+            </div>
+            <h1 className="flex-1 text-center mr-[100px] w-full text-4xl font-extrabold tracking-wide drop-shadow-lg">EmuRom</h1>
           </div>
 
           {/* Emulator Dashboard */}

@@ -52,7 +52,7 @@ const EmulatorDashboard = () => {
       ? [[selectedPlatform, games[selectedPlatform]]]
       : Object.entries(games);
 
-    return platforms?.map(([platformKey, platform]) => (
+    return platforms?.reverse()?.map(([platformKey, platform]) => (
       <>
         {/* PLATFORM HEADER */}
         <div
@@ -134,8 +134,7 @@ const EmulatorDashboard = () => {
 
   return (
     <div
-      className={`
-       w-[80%]
+      className={`w-full md:w-[80%]
   bg-gradient-to-r from-cyan-500 via-purple-800 to-blue-900 
   text-white mt-1 p-1 rounded-2xl
   ${animating && "animate-[glowWithBorder_4s_infinite_alternate]"}
@@ -208,7 +207,6 @@ const EmulatorDashboard = () => {
         >
           {renderPlatforms()}
         </div>
-      )
     </div>
   );
 };
